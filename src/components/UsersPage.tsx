@@ -1,14 +1,31 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { UserTable } from './UserTable';
 import { UserDetailPanel } from './UserDetailPanel';
-import { usersData, User, FilterState } from '@/data/usersData';
+import { User, FilterState } from '@/data/usersData';
+import { useGetUsersQuery } from '@/features/users/usersApi';
+
+const createAvatarFallback = (fullName: string, phone: string) => {
+  if (fullName.trim()) {
+    return fullName
+      .split(' ')
+      .map((part) => part[0] ?? '')
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  }
+
+  return phone.slice(-2) || 'US';
+};
 
 export function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
     plan: 'All',
     status: 'All',
@@ -16,6 +33,60 @@ export function UsersPage() {
   });
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const { data, isLoading, isError } = useGetUsersQuery({
+    search: debouncedSearch,
+    page: currentPage,
+  });
+
+  const users = useMemo<User[]>(() => {
+    const rawUsers = data?.users ?? [];
+
+    return rawUsers.map((rawUser) => {
+      const fullName = rawUser.fullname || rawUser.username || rawUser.phone || 'Unknown User';
+      const email = rawUser.email || 'N/A';
+      const phone = rawUser.phone || 'N/A';
+      const plan = rawUser.subscription_type?.toLowerCase() === 'pro' ? 'Pro' : 'Free';
+      const accountStatus =
+        rawUser.account_status === 'Limited' || rawUser.account_status === 'Suspended'
+          ? rawUser.account_status
+          : 'Active';
+      const signupDate = rawUser.joined_at ? new Date(rawUser.joined_at) : new Date();
+      const lastActive = rawUser.last_login ? new Date(rawUser.last_login) : signupDate;
+      const expiryDate = rawUser.subscription_current_period_end
+        ? new Date(rawUser.subscription_current_period_end)
+        : null;
+
+      return {
+        id: rawUser.id,
+        fullName,
+        email,
+        phone,
+        plan,
+        accountStatus,
+        signupDate,
+        lastActive,
+        subscription: {
+          startDate: signupDate,
+          expiryDate,
+          referralDiscount: false,
+        },
+        avatarFallback: createAvatarFallback(fullName, phone),
+      };
+    });
+  }, [data?.users]);
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);
@@ -27,7 +98,7 @@ export function UsersPage() {
     setTimeout(() => setSelectedUser(null), 300);
   };
 
-  const filteredUsers = usersData.filter((user) => {
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
       searchQuery === '' ||
       user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -159,10 +230,46 @@ export function UsersPage() {
       ) : null}
 
       <div className="text-sm text-muted-foreground">
-        Showing {filteredUsers.length} of {usersData.length} users
+        Showing {filteredUsers.length} of {data?.count ?? users.length} users
       </div>
 
-      <UserTable users={filteredUsers} onUserSelect={handleUserSelect} />
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Loading users...</div>
+      ) : isError ? (
+        <div className="text-sm text-destructive">Failed to load users. Please try again.</div>
+      ) : (
+        <UserTable users={filteredUsers} onUserSelect={handleUserSelect} />
+      )}
+
+      {data && data.total_pages > 1 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">
+            Page {data.current_page} of {data.total_pages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data.previous || isLoading}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data.next || isLoading}
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  data.total_pages ? Math.min(data.total_pages, prev + 1) : prev + 1
+                )
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <UserDetailPanel user={selectedUser} isOpen={isPanelOpen} onClose={handlePanelClose} />
     </div>

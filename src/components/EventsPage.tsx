@@ -1,14 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { parse } from 'date-fns';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { EventTable } from './EventTable';
 import { EventDetailPanel } from './EventDetailPanel';
-import { eventsData, Event, EventFilterState } from '@/data/eventsData';
+import { Event, EventFilterState } from '@/data/eventsData';
+import { useGetEventsQuery } from '@/features/events/eventsApi';
+
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .map((part) => part[0] ?? '')
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || 'EV';
+
+const mapStatus = (status: string): Event['status'] => {
+  const normalized = status.toLowerCase();
+  if (normalized === 'enquiry' || normalized === 'inquiry') return 'Inquiry';
+  if (normalized === 'confirmed') return 'Confirmed';
+  if (normalized === 'completed') return 'Completed';
+  if (normalized === 'cancelled') return 'Cancelled';
+  return 'Inquiry';
+};
+
+const mapAccessLevel = (permission: string): 'Basic' | 'Collaborator' | 'Full' => {
+  if (permission === 'full_access') return 'Full';
+  if (permission === 'view_only') return 'Basic';
+  return 'Collaborator';
+};
 
 export function EventsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<EventFilterState>({
     status: 'All',
     dateRange: 'All',
@@ -16,6 +44,75 @@ export function EventsPage() {
   });
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
+
+  const { data, isLoading, isError } = useGetEventsQuery({
+    search: debouncedSearch,
+    page: currentPage,
+  });
+
+  const events = useMemo<Event[]>(() => {
+    const rawEvents = data?.events ?? [];
+
+    return rawEvents.map((rawEvent) => {
+      const ownerName =
+        rawEvent.user.fullname ||
+        rawEvent.user.username ||
+        rawEvent.user.phone ||
+        rawEvent.user.email ||
+        'Unknown User';
+
+      const eventDate = parse(rawEvent.event_date, 'dd/MM/yyyy hh:mm a', new Date());
+      const createdOn = new Date(rawEvent.created_at);
+
+      return {
+        id: rawEvent.id,
+        title: rawEvent.title || 'Untitled Event',
+        eventType:
+          typeof rawEvent.category === 'string'
+            ? rawEvent.category
+            : rawEvent.category?.name || 'General',
+        eventDate: Number.isNaN(eventDate.getTime()) ? new Date() : eventDate,
+        venue: rawEvent.location || 'N/A',
+        clientName: rawEvent.client?.name || 'N/A',
+        status: mapStatus(rawEvent.status),
+        createdOn: Number.isNaN(createdOn.getTime()) ? new Date() : createdOn,
+        owner: {
+          name: ownerName,
+          avatarFallback: getInitials(ownerName),
+        },
+        participantCount: rawEvent.team_members.length,
+        participants: rawEvent.team_members.map((member) => {
+          const memberName =
+            member.user.fullname ||
+            member.user.username ||
+            member.user.phone ||
+            member.user.email ||
+            'Team Member';
+
+          return {
+            id: member.id,
+            name: memberName,
+            accessLevel: mapAccessLevel(member.permission),
+            role: 'Team Member' as const,
+            avatarFallback: getInitials(memberName),
+          };
+        }),
+        timeline: [],
+      };
+    });
+  }, [data?.events]);
 
   const handleEventSelect = (event: Event) => {
     setSelectedEvent(event);
@@ -27,7 +124,7 @@ export function EventsPage() {
     setTimeout(() => setSelectedEvent(null), 300);
   };
 
-  const filteredEvents = eventsData.filter((event) => {
+  const filteredEvents = events.filter((event) => {
     const matchesSearch =
       searchQuery === '' ||
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -160,10 +257,46 @@ export function EventsPage() {
       ) : null}
 
       <div className="text-sm text-muted-foreground">
-        Showing {filteredEvents.length} of {eventsData.length} events
+        Showing {filteredEvents.length} of {data?.count ?? events.length} events
       </div>
 
-      <EventTable events={filteredEvents} onEventSelect={handleEventSelect} />
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Loading events...</div>
+      ) : isError ? (
+        <div className="text-sm text-destructive">Failed to load events. Please try again.</div>
+      ) : (
+        <EventTable events={filteredEvents} onEventSelect={handleEventSelect} />
+      )}
+
+      {data && data.total_pages > 1 ? (
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+          <p className="text-sm text-muted-foreground">
+            Page {data.current_page} of {data.total_pages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data.previous || isLoading}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data.next || isLoading}
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  data.total_pages ? Math.min(data.total_pages, prev + 1) : prev + 1
+                )
+              }
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <EventDetailPanel event={selectedEvent} isOpen={isPanelOpen} onClose={handlePanelClose} />
     </div>
