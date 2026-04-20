@@ -12,8 +12,8 @@ const chartConfig = {
     label: 'Events Created',
     color: 'hsl(var(--chart-1))',
   },
-  activeUsers: {
-    label: 'Active Users',
+  usersRegistered: {
+    label: 'Users Registered',
     color: 'hsl(var(--chart-2))',
   },
 };
@@ -23,7 +23,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
     <Card className="p-6 col-span-full lg:col-span-2">
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-1">Platform Performance</h3>
-        <p className="text-sm text-muted-foreground">Events created and user activity over the last 30 days</p>
+        <p className="text-sm text-muted-foreground">Events created and users registered over the last 30 days</p>
       </div>
 
       <ChartContainer config={chartConfig} className="h-[350px] w-full">
@@ -60,7 +60,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
           />
           <Line
             type="monotone"
-            dataKey="activeUsers"
+            dataKey="usersRegistered"
             stroke="hsl(var(--chart-2))"
             strokeWidth={2}
             dot={false}
@@ -77,7 +77,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
         </div>
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded-full bg-[hsl(var(--chart-2))]" />
-          <span className="text-sm text-muted-foreground">Active Users</span>
+          <span className="text-sm text-muted-foreground">Users Registered</span>
         </div>
       </div>
     </Card>

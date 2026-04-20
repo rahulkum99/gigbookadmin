@@ -20,7 +20,9 @@ const getInitials = (name: string) =>
 
 const mapStatus = (status: string): Event['status'] => {
   const normalized = status.toLowerCase();
-  if (normalized === 'enquiry' || normalized === 'inquiry') return 'Inquiry';
+  if (normalized === 'enquiry' || normalized === 'inquiry' || normalized === 'pending') {
+    return 'Inquiry';
+  }
   if (normalized === 'confirmed') return 'Confirmed';
   if (normalized === 'completed') return 'Completed';
   if (normalized === 'cancelled') return 'Cancelled';

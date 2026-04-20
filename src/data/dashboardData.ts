@@ -9,7 +9,7 @@ export interface KPIMetric {
 export interface ChartDataPoint {
   date: string;
   events: number;
-  activeUsers: number;
+  usersRegistered: number;
 }
 
 export interface ConversionMetric {
@@ -81,12 +81,12 @@ export const generateChartData = (): ChartDataPoint[] => {
 
     const baseUsers = 200 + Math.sin(i / 4) * 40;
     const userVariance = Math.random() * 40 - 20;
-    const activeUsers = Math.round(baseUsers + userVariance);
+    const usersRegistered = Math.round(baseUsers + userVariance);
 
     data.push({
       date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       events,
-      activeUsers,
+      usersRegistered,
     });
   }
 

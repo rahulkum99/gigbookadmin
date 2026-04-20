@@ -69,7 +69,7 @@ export function Dashboard() {
       day: 'numeric',
     }),
     events: item.events_created,
-    activeUsers: item.active_users,
+    usersRegistered: item.users_registered,
   }));
 
   const conversionMetrics = [
