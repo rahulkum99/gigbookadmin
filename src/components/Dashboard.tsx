@@ -2,19 +2,102 @@ import { KPICard } from './KPICard';
 import { PerformanceChart } from './PerformanceChart';
 import { ConversionInsights } from './ConversionInsights';
 import { SubscriptionHealth } from './SubscriptionHealth';
-import { SystemHealth } from './SystemHealth';
-import { InsightStrip } from './InsightStrip';
-import {
-  kpiMetrics,
-  generateChartData,
-  conversionMetrics,
-  subscriptionData,
-  systemStatuses,
-  insights,
-} from '@/data/dashboardData';
+import { useGetDashboardQuery } from '@/features/dashboard/dashboardApi';
 
 export function Dashboard() {
-  const chartData = generateChartData();
+  const { data, isLoading, isError } = useGetDashboardQuery();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 pb-8">
+        <p className="text-sm text-muted-foreground">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="space-y-8 pb-8">
+        <p className="text-sm text-destructive">
+          Failed to load dashboard data. Please try again.
+        </p>
+      </div>
+    );
+  }
+
+  const kpiMetrics = [
+    {
+      name: 'Total Users',
+      value: data.stats.total_users,
+      change: 0,
+      changeLabel: 'Live total',
+      icon: 'users',
+    },
+    {
+      name: 'Active Users',
+      value: data.stats.active_users,
+      change: 0,
+      changeLabel: 'Current active',
+      icon: 'activity',
+    },
+    {
+      name: 'Total Events',
+      value: data.stats.total_events,
+      change: 0,
+      changeLabel: 'All time',
+      icon: 'calendar',
+    },
+    {
+      name: 'Events Today',
+      value: data.stats.events_today,
+      change: 0,
+      changeLabel: 'Today',
+      icon: 'calendar-plus',
+    },
+    {
+      name: 'Active Subscriptions',
+      value: data.stats.active_subscriptions,
+      change: 0,
+      changeLabel: 'Current active',
+      icon: 'credit-card',
+    },
+  ];
+
+  const chartData = data.platform_performance.activity.map((item) => ({
+    date: new Date(item.date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    }),
+    events: item.events_created,
+    activeUsers: item.active_users,
+  }));
+
+  const conversionMetrics = [
+    {
+      title: 'Free Limit Reached',
+      value: data.conversion_growth.subscription_free_limit_reached.count.toString(),
+      change: data.conversion_growth.subscription_free_limit_reached.percentage,
+      description: 'Users who hit their free event limit',
+    },
+    {
+      title: 'Upgraded to Pro',
+      value: data.conversion_growth.upgraded_to_pro.count.toString(),
+      change: data.conversion_growth.upgraded_to_pro.percentage,
+      description: 'Users who upgraded to Pro',
+    },
+    {
+      title: 'Paywall Drop-off',
+      value: `${data.conversion_growth.paywell_dropoff_rate.percentage}%`,
+      change: data.conversion_growth.paywell_dropoff_rate.percentage,
+      description: 'Users leaving at upgrade prompt',
+    },
+  ];
+
+  const subscriptionData = {
+    free: data.subscription_health.free_users.count,
+    pro: data.subscription_health.pro_users.count,
+    totalUsers: data.subscription_health.total_active_users,
+  };
 
   return (
     <div className="space-y-8 pb-8">
@@ -37,12 +120,12 @@ export function Dashboard() {
         <ConversionInsights metrics={conversionMetrics} />
       </section>
 
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <InsightStrip insights={insights} />
         </div>
         <SystemHealth statuses={systemStatuses} />
-      </section>
+      </section> */}
     </div>
   );
 }

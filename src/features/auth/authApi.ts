@@ -23,7 +23,13 @@ interface RefreshTokenResponse {
   access: string;
 }
 
-const baseUrl = import.meta.env.VITE_API_URL || 'https://api.gigbook.in';
+interface LogoutRequest {
+  refresh: string;
+}
+
+const baseUrl =
+  (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+    ?.VITE_API_URL || 'https://api.gigbook.in';
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl,
@@ -40,7 +46,7 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
-const baseQueryWithReauth: BaseQueryFn<
+export const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
   FetchBaseQueryError
@@ -107,7 +113,22 @@ export const authApi = createApi({
         }
       },
     }),
+    logoutUser: builder.mutation<{ message: string }, LogoutRequest>({
+      query: (payload) => ({
+        url: '/api/v1/auth/logout/',
+        method: 'POST',
+        body: payload,
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+        } finally {
+          // Always clear local auth state after logout attempt.
+          dispatch(logout());
+        }
+      },
+    }),
   }),
 });
 
-export const { useLoginMutation } = authApi;
+export const { useLoginMutation, useLogoutUserMutation } = authApi;

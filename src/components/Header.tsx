@@ -8,6 +8,10 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { LogOut, Settings, User } from 'lucide-react';
+import { toast } from 'sonner';
+import { useLogoutUserMutation } from '@/features/auth/authApi';
+import { logout } from '@/features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
 
 interface HeaderProps {
   title: string;
@@ -15,8 +19,29 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const handleLogout = () => {
-    window.location.reload();
+  const dispatch = useAppDispatch();
+  const [logoutUser, { isLoading: isLoggingOut }] = useLogoutUserMutation();
+  const refreshToken = useAppSelector((state) => state.auth.refreshToken);
+  const user = useAppSelector((state) => state.auth.user);
+
+  const handleLogout = async () => {
+    if (!refreshToken) {
+      dispatch(logout());
+      toast.success('Logged out');
+      return;
+    }
+
+    try {
+      await logoutUser({ refresh: refreshToken }).unwrap();
+      toast.success('Logged out', {
+        description: 'You have been signed out successfully.',
+      });
+    } catch {
+      dispatch(logout());
+      toast.error('Logout failed on server', {
+        description: 'Session cleared locally. Please sign in again.',
+      });
+    }
   };
 
   return (
@@ -38,8 +63,8 @@ export function Header({ title, subtitle }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="flex flex-col">
-                <span className="font-semibold">Admin User</span>
-                <span className="text-xs text-muted-foreground font-normal">admin@gigbook.ai</span>
+                <span className="font-semibold">{user?.fullname || 'Admin User'}</span>
+                <span className="text-xs text-muted-foreground font-normal">{user?.email || 'admin@gigbook.ai'}</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer">
@@ -53,10 +78,11 @@ export function Header({ title, subtitle }: HeaderProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20"
+                disabled={isLoggingOut}
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
+                <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
