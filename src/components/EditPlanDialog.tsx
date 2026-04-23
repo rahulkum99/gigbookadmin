@@ -13,7 +13,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import type { UpdateSubscriptionPlanRequest } from '@/features/subscriptions/subscriptionsApi';
+import {
+  useLazyGetSubscriptionPlanByIdQuery,
+  type SubscriptionPlan,
+  type UpdateSubscriptionPlanRequest,
+} from '@/features/subscriptions/subscriptionsApi';
 
 export interface EditablePlanData {
   id: string;
@@ -66,6 +70,22 @@ function planToForm(plan: EditablePlanData): FormState {
   };
 }
 
+function apiPlanToEditable(plan: SubscriptionPlan): EditablePlanData {
+  return {
+    id: plan.id,
+    title: plan.title ?? '',
+    description: plan.description ?? '',
+    price: plan.price ?? '0.00',
+    currency: plan.currency ?? 'INR',
+    razorpay_plan_id: plan.razorpay_plan_id ?? '',
+    is_active: plan.is_active,
+    features: plan.features ?? [],
+    planLabel:
+      plan.title?.trim() ||
+      `${plan.plan_type ? `${plan.plan_type[0].toUpperCase()}${plan.plan_type.slice(1)}` : 'Plan'}${plan.interval ? ` (${plan.interval})` : ''}`,
+  };
+}
+
 function buildPatchPayload(
   plan: EditablePlanData,
   form: FormState
@@ -87,7 +107,9 @@ function buildPatchPayload(
 export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDialogProps) {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fetchPlanById] = useLazyGetSubscriptionPlanByIdQuery();
 
   useEffect(() => {
     if (open && plan) {
@@ -95,6 +117,32 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
       setError(null);
     }
   }, [open, plan]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPlanDetails = async () => {
+      if (!open || !plan) return;
+      setIsFetchingDetails(true);
+      try {
+        const latest = await fetchPlanById(plan.id, true).unwrap();
+        if (!isMounted) return;
+        setForm(planToForm(apiPlanToEditable(latest)));
+      } catch {
+        if (!isMounted) return;
+        // Keep fallback values from parent payload if fetch fails.
+      } finally {
+        if (isMounted) {
+          setIsFetchingDetails(false);
+        }
+      }
+    };
+
+    void loadPlanDetails();
+    return () => {
+      isMounted = false;
+    };
+  }, [open, plan, fetchPlanById]);
 
   const handleFieldChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -125,6 +173,32 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
     const priceNum = parseFloat(form.price);
     if (!Number.isFinite(priceNum) || priceNum < 0) {
       setError('Enter a valid non-negative price.');
+      return;
+    }
+
+    if (!form.title.trim()) {
+      setError('Title is required.');
+      return;
+    }
+
+    if (!form.description.trim()) {
+      setError('Description is required.');
+      return;
+    }
+
+    if (!form.currency.trim()) {
+      setError('Currency is required.');
+      return;
+    }
+
+    if (!form.razorpay_plan_id.trim()) {
+      setError('Razorpay plan ID is required.');
+      return;
+    }
+
+    const hasAtLeastOneFeature = form.features.some((feature) => feature.trim().length > 0);
+    if (!hasAtLeastOneFeature) {
+      setError('At least one feature is required.');
       return;
     }
 
@@ -174,7 +248,7 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
                 min="0"
                 value={form.price}
                 onChange={(e) => handleFieldChange('price', e.target.value)}
-                disabled={isSaving}
+                disabled={isSaving || isFetchingDetails}
                 required
               />
             </div>
@@ -186,8 +260,9 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
                 onChange={(e) =>
                   handleFieldChange('currency', e.target.value.toUpperCase())
                 }
-                disabled={isSaving}
+                disabled={isSaving || isFetchingDetails}
                 maxLength={3}
+                required
               />
             </div>
           </div>
@@ -199,7 +274,8 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
               value={form.title}
               onChange={(e) => handleFieldChange('title', e.target.value)}
               placeholder="Display title (optional)"
-              disabled={isSaving}
+              disabled={isSaving || isFetchingDetails}
+              required
             />
           </div>
 
@@ -211,7 +287,8 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
               onChange={(e) => handleFieldChange('description', e.target.value)}
               placeholder="Short description shown to users"
               rows={3}
-              disabled={isSaving}
+              disabled={isSaving || isFetchingDetails}
+              required
             />
           </div>
 
@@ -222,7 +299,8 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
               value={form.razorpay_plan_id}
               onChange={(e) => handleFieldChange('razorpay_plan_id', e.target.value)}
               placeholder="plan_xxxxxxxxxxxxxx"
-              disabled={isSaving}
+              disabled={isSaving || isFetchingDetails}
+              required
             />
           </div>
 
@@ -234,7 +312,7 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
                 variant="ghost"
                 size="sm"
                 onClick={handleFeatureAdd}
-                disabled={isSaving}
+                disabled={isSaving || isFetchingDetails}
               >
                 <Plus className="h-4 w-4 mr-1" />
                 Add feature
@@ -252,14 +330,14 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
                       value={feature}
                       onChange={(e) => handleFeatureChange(index, e.target.value)}
                       placeholder={`Feature #${index + 1}`}
-                      disabled={isSaving}
+                      disabled={isSaving || isFetchingDetails}
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => handleFeatureRemove(index)}
-                      disabled={isSaving}
+                      disabled={isSaving || isFetchingDetails}
                       aria-label="Remove feature"
                     >
                       <Trash2 className="h-4 w-4 text-muted-foreground" />
@@ -283,7 +361,7 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
               id="plan-active"
               checked={form.is_active}
               onCheckedChange={(checked) => handleFieldChange('is_active', checked)}
-              disabled={isSaving}
+              disabled={isSaving || isFetchingDetails}
             />
           </div>
 
@@ -302,11 +380,11 @@ export function EditPlanDialog({ open, plan, onOpenChange, onSave }: EditPlanDia
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? (
+            <Button type="submit" disabled={isSaving || isFetchingDetails}>
+              {isSaving || isFetchingDetails ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
+                  {isFetchingDetails ? 'Loading details...' : 'Saving...'}
                 </>
               ) : (
                 'Save changes'

@@ -170,11 +170,19 @@ export const subscriptionsApi = createApi({
       }),
       invalidatesTags: ['SubscriptionPlan'],
     }),
+    getSubscriptionPlanById: builder.query<SubscriptionPlan, string>({
+      query: (id) => ({
+        url: `/api/v1/admin/subscription-plans/${id}/`,
+        method: 'GET',
+      }),
+      providesTags: ['SubscriptionPlan'],
+    }),
   }),
 });
 
 export const {
   useGetSubscriptionsQuery,
+  useLazyGetSubscriptionPlanByIdQuery,
   useUpdatePlatformConfigMutation,
   useUpdateSubscriptionPlanMutation,
 } = subscriptionsApi;
