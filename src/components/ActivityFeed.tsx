@@ -1,14 +1,22 @@
-import { ArrowUpCircle, RefreshCw, XCircle, ArrowDownCircle, Clock } from 'lucide-react';
+import { ArrowUpCircle, RefreshCw, XCircle, ArrowDownCircle, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn, formatCurrency } from '@/lib/utils';
 
+export type ActivityAction =
+  | 'upgraded'
+  | 'renewed'
+  | 'cancelled'
+  | 'downgraded'
+  | 'active'
+  | 'created';
+
 interface SubscriptionActivity {
   id: string;
   userName: string;
   userEmail: string;
-  action: 'upgraded' | 'renewed' | 'cancelled' | 'downgraded';
+  action: ActivityAction | string;
   planName: string;
   timestamp: string;
   amount?: number;
@@ -21,7 +29,7 @@ interface ActivityFeedProps {
 
 export function ActivityFeed({ activities, delay = 0 }: ActivityFeedProps) {
   const getActionConfig = (action: string) => {
-    switch (action) {
+    switch (action.toLowerCase()) {
       case 'upgraded':
         return {
           icon: ArrowUpCircle,
@@ -54,13 +62,29 @@ export function ActivityFeed({ activities, delay = 0 }: ActivityFeedProps) {
           badgeClass: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
           label: 'Downgraded',
         };
+      case 'active':
+        return {
+          icon: CheckCircle2,
+          color: 'text-emerald-600',
+          bg: 'bg-emerald-50',
+          badgeClass: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100',
+          label: 'Active',
+        };
+      case 'created':
+        return {
+          icon: Sparkles,
+          color: 'text-indigo-600',
+          bg: 'bg-indigo-50',
+          badgeClass: 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100',
+          label: 'Created',
+        };
       default:
         return {
           icon: Clock,
           color: 'text-gray-600',
           bg: 'bg-gray-50',
           badgeClass: 'bg-gray-100 text-gray-700 hover:bg-gray-100',
-          label: 'Activity',
+          label: action ? action.charAt(0).toUpperCase() + action.slice(1) : 'Activity',
         };
     }
   };
