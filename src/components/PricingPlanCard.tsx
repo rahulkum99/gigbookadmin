@@ -114,7 +114,7 @@ export function PricingPlanCard({
           ))}
         </div>
 
-        {!isFree && (
+        {/* {!isFree && (
           <Button
             variant="outline"
             size="sm"
@@ -125,7 +125,7 @@ export function PricingPlanCard({
             <Edit2 className="h-4 w-4 mr-2" />
             Edit Plan
           </Button>
-        )}
+        )} */}
       </Card>
 
       {canEdit && editable && onEditSave && (

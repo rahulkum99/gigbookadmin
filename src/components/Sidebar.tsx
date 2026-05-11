@@ -14,8 +14,8 @@ const navItems: NavItem[] = [
   { name: 'Events', icon: Calendar, id: 'events' },
   { name: 'Subscriptions', icon: CreditCard, id: 'subscriptions' },
   { name: 'Referrals', icon: Gift, id: 'referrals' },
-  { name: 'Notifications', icon: Bell, id: 'notifications' },
-  { name: 'Support & Safety', icon: Shield, id: 'support-safety' },
+  // { name: 'Notifications', icon: Bell, id: 'notifications' },
+  // { name: 'Support & Safety', icon: Shield, id: 'support-safety' },
   { name: 'Exports', icon: FileDown, id: 'exports' },
   { name: 'Settings', icon: Settings, id: 'settings' },
 ];

@@ -17,7 +17,7 @@ import {
 export function SettingsPage() {
   return (
     <div className="space-y-8 pb-8">
-      <div
+      {/* <div
         className="p-4 bg-blue-50 border border-blue-200 rounded-lg"
         style={{
           animation: 'fade-in 0.6s ease-out 50ms both',
@@ -32,14 +32,14 @@ export function SettingsPage() {
             </p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div
         style={{
           animation: 'fade-in 0.6s ease-out 100ms both',
         }}
       >
-        <AppVersionControlCard initialConfig={appVersionConfig} />
+        {/* <AppVersionControlCard initialConfig={appVersionConfig} /> */}
       </div>
 
       <Separator className="my-8" />
@@ -54,13 +54,13 @@ export function SettingsPage() {
 
       <Separator className="my-8" />
 
-      <div
+      {/* <div
         style={{
           animation: 'fade-in 0.6s ease-out 300ms both',
         }}
       >
         <LegalVersionControlCard documents={legalDocuments} />
-      </div>
+      </div> */}
 
       <Separator className="my-8" />
 
@@ -74,7 +74,7 @@ export function SettingsPage() {
 
       <Separator className="my-8" />
 
-      <div
+      {/* <div
         className="space-y-4"
         style={{
           animation: 'fade-in 0.6s ease-out 500ms both',
@@ -91,7 +91,7 @@ export function SettingsPage() {
             <GovernanceChangeLogTable logs={governanceChangeLogs} />
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   );
 }

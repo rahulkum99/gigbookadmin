@@ -4,6 +4,7 @@ import { dashboardApi } from '@/features/dashboard/dashboardApi';
 import { eventsApi } from '@/features/events/eventsApi';
 import { usersApi } from '@/features/users/usersApi';
 import { subscriptionsApi } from '@/features/subscriptions/subscriptionsApi';
+import { exportsApi } from '@/features/exports/exportsApi';
 import authReducer from '@/features/auth/authSlice';
 
 export const store = configureStore({
@@ -13,6 +14,7 @@ export const store = configureStore({
     [eventsApi.reducerPath]: eventsApi.reducer,
     [usersApi.reducerPath]: usersApi.reducer,
     [subscriptionsApi.reducerPath]: subscriptionsApi.reducer,
+    [exportsApi.reducerPath]: exportsApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -21,7 +23,8 @@ export const store = configureStore({
       dashboardApi.middleware,
       eventsApi.middleware,
       usersApi.middleware,
-      subscriptionsApi.middleware
+      subscriptionsApi.middleware,
+      exportsApi.middleware
     ),
 });
 

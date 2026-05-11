@@ -2,10 +2,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ExportDatasetCard } from './ExportDatasetCard';
 import { ExportActivityTable } from './ExportActivityTable';
 import { ExportDetailsCard } from './ExportDetailsCard';
-import { exportDatasets, recentExportActivity } from '@/data/exportsData';
+import { exportDatasets } from '@/data/exportsData';
 import { Info } from 'lucide-react';
+import {
+  EXPORT_TYPE_BY_DATASET,
+  useGetExportsHistoryQuery,
+  type ExportDatasetId,
+} from '@/features/exports/exportsApi';
 
 export function ExportsPage() {
+  const { data: history, isLoading: isHistoryLoading } = useGetExportsHistoryQuery();
+
+  const lastGeneratedByType = history?.last_generated ?? {};
+  const activities = history?.exports ?? [];
+
   return (
     <div className="space-y-8 animate-in fade-in" style={{ animationDuration: '600ms' }}>
       <Card className="bg-blue-50 border-blue-200">
@@ -31,17 +41,25 @@ export function ExportsPage() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {exportDatasets.map((dataset, index) => (
-            <ExportDatasetCard
-              key={dataset.id}
-              name={dataset.name}
-              description={dataset.description}
-              icon={dataset.icon}
-              format={dataset.format}
-              lastGenerated={dataset.lastGenerated}
-              delay={index * 100}
-            />
-          ))}
+          {exportDatasets.map((dataset, index) => {
+            const datasetId = dataset.id as ExportDatasetId;
+            const exportType = EXPORT_TYPE_BY_DATASET[datasetId];
+            const lastGenerated = lastGeneratedByType[exportType] ?? null;
+
+            return (
+              <ExportDatasetCard
+                key={dataset.id}
+                id={datasetId}
+                name={dataset.name}
+                description={dataset.description}
+                icon={dataset.icon}
+                format={dataset.format}
+                lastGenerated={lastGenerated}
+                isLastGeneratedLoading={isHistoryLoading}
+                delay={index * 100}
+              />
+            );
+          })}
         </div>
       </section>
 
@@ -71,7 +89,7 @@ export function ExportsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ExportActivityTable activities={recentExportActivity} />
+            <ExportActivityTable activities={activities} isLoading={isHistoryLoading} />
           </CardContent>
         </Card>
       </section>
