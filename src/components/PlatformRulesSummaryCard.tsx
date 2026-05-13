@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, CreditCard, TrendingDown, Archive, LucideIcon } from 'lucide-react';
 import { PlatformRule } from '@/data/settingsData';
+import { useGetMaintenanceModeQuery } from '@/features/settings/settingsApi';
 
 interface PlatformRulesSummaryCardProps {
   rules: PlatformRule[];
@@ -13,7 +14,37 @@ const iconMap: Record<string, LucideIcon> = {
   Archive,
 };
 
+function toOrdinal(n: number): string {
+  const abs = Math.abs(Math.trunc(n));
+  const mod100 = abs % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${abs}th`;
+  const mod10 = abs % 10;
+  if (mod10 === 1) return `${abs}st`;
+  if (mod10 === 2) return `${abs}nd`;
+  if (mod10 === 3) return `${abs}rd`;
+  return `${abs}th`;
+}
+
 export function PlatformRulesSummaryCard({ rules }: PlatformRulesSummaryCardProps) {
+  const { data } = useGetMaintenanceModeQuery();
+
+  const effectiveRules = rules.map((rule) => {
+    if (rule.id === 'free-event-limit' && typeof data?.free_event_limit === 'number') {
+      return {
+        ...rule,
+        value: `${data.free_event_limit} events per user`,
+      };
+    }
+    if (rule.id === 'paywall-trigger' && typeof data?.free_event_limit === 'number') {
+      const paywallOn = data.free_event_limit + 1;
+      return {
+        ...rule,
+        value: `On ${toOrdinal(paywallOn)} event creation`,
+      };
+    }
+    return rule;
+  });
+
   return (
     <Card className="border-gray-200">
       <CardHeader>
@@ -24,7 +55,7 @@ export function PlatformRulesSummaryCard({ rules }: PlatformRulesSummaryCardProp
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {rules.map((rule) => {
+          {effectiveRules.map((rule) => {
             const IconComponent = iconMap[rule.icon] || Calendar;
             return (
               <div

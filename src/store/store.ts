@@ -5,6 +5,7 @@ import { eventsApi } from '@/features/events/eventsApi';
 import { usersApi } from '@/features/users/usersApi';
 import { subscriptionsApi } from '@/features/subscriptions/subscriptionsApi';
 import { exportsApi } from '@/features/exports/exportsApi';
+import { settingsApi } from '@/features/settings/settingsApi';
 import authReducer from '@/features/auth/authSlice';
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     [usersApi.reducerPath]: usersApi.reducer,
     [subscriptionsApi.reducerPath]: subscriptionsApi.reducer,
     [exportsApi.reducerPath]: exportsApi.reducer,
+    [settingsApi.reducerPath]: settingsApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -24,7 +26,8 @@ export const store = configureStore({
       eventsApi.middleware,
       usersApi.middleware,
       subscriptionsApi.middleware,
-      exportsApi.middleware
+      exportsApi.middleware,
+      settingsApi.middleware
     ),
 });
 

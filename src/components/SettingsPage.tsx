@@ -6,13 +6,7 @@ import { GovernanceChangeLogTable } from './GovernanceChangeLogTable';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Info } from 'lucide-react';
-import {
-  appVersionConfig,
-  maintenanceConfig,
-  legalDocuments,
-  platformRules,
-  governanceChangeLogs,
-} from '@/data/settingsData';
+import { appVersionConfig, legalDocuments, platformRules, governanceChangeLogs } from '@/data/settingsData';
 
 export function SettingsPage() {
   return (
@@ -49,7 +43,7 @@ export function SettingsPage() {
           animation: 'fade-in 0.6s ease-out 200ms both',
         }}
       >
-        <MaintenanceModeCard initialConfig={maintenanceConfig} />
+        <MaintenanceModeCard />
       </div>
 
       <Separator className="my-8" />
