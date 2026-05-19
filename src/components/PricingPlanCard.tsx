@@ -1,6 +1,5 @@
-import { Check, Edit2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -52,14 +51,6 @@ export function PricingPlanCard({
         ? `${name} plan enabled`
         : `${name} plan disabled`
     );
-  };
-
-  const handleEditPrice = () => {
-    if (canEdit) {
-      setIsEditOpen(true);
-      return;
-    }
-    toast.info('This plan cannot be edited');
   };
 
   return (

@@ -1,12 +1,7 @@
-import { AppVersionControlCard } from './AppVersionControlCard';
 import { MaintenanceModeCard } from './MaintenanceModeCard';
-import { LegalVersionControlCard } from './LegalVersionControlCard';
 import { PlatformRulesSummaryCard } from './PlatformRulesSummaryCard';
-import { GovernanceChangeLogTable } from './GovernanceChangeLogTable';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Info } from 'lucide-react';
-import { appVersionConfig, legalDocuments, platformRules, governanceChangeLogs } from '@/data/settingsData';
+import { platformRules } from '@/data/settingsData';
 
 export function SettingsPage() {
   return (

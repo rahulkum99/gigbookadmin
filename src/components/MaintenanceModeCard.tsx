@@ -150,7 +150,7 @@ export function MaintenanceModeCard() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={handleMessageUpdate}
-            disabled={isLoading || isUpdating || !isEnabled}
+            disabled={isLoading || isUpdating}
             placeholder="e.g., Maintenance in progress"
             className="max-w-md border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           />
@@ -165,7 +165,7 @@ export function MaintenanceModeCard() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={handleMessageUpdate}
-            disabled={isLoading || isUpdating || !isEnabled}
+            disabled={isLoading || isUpdating}
             placeholder="Enter the message users will see during maintenance..."
             className="min-h-[100px] border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             maxLength={500}
@@ -186,7 +186,7 @@ export function MaintenanceModeCard() {
             value={downtime}
             onChange={(e) => setDowntime(e.target.value)}
             onBlur={handleDowntimeUpdate}
-            disabled={isLoading || isUpdating || !isEnabled}
+            disabled={isLoading || isUpdating}
             className="max-w-md border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="text-xs text-gray-500">
@@ -205,7 +205,7 @@ export function MaintenanceModeCard() {
               value={startTimeLocal}
               onChange={(e) => setStartTimeLocal(e.target.value)}
               onBlur={handleStartTimeUpdate}
-              disabled={isLoading || isUpdating || !isEnabled}
+              disabled={isLoading || isUpdating}
               className="border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <p className="text-xs text-gray-500">
@@ -223,8 +223,8 @@ export function MaintenanceModeCard() {
               value={endTimeLocal}
               onChange={(e) => setEndTimeLocal(e.target.value)}
               onBlur={handleEndTimeUpdate}
-              disabled={isLoading || isUpdating || !isEnabled}
-            className="max-w-md border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || isUpdating}
+              className="max-w-md border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="text-xs text-gray-500">
               Optional: When maintenance is expected to end (in your local timezone)

@@ -9,6 +9,7 @@ import { ReferralsPage } from './components/ReferralsPage';
 import { NotificationsPage } from './components/NotificationsPage';
 import { SupportSafetyPage } from './components/SupportSafetyPage';
 import { ExportsPage } from './components/ExportsPage';
+import { RatingsReviewsPage } from './components/RatingsReviewsPage';
 import { SettingsPage } from './components/SettingsPage';
 import { LoginPage } from './components/LoginPage';
 import { useAppSelector } from './store/hooks';
@@ -37,6 +38,12 @@ function App() {
           title: 'Subscriptions',
           subtitle: 'Plans, pricing, and monetization overview',
           component: <SubscriptionsPage />,
+        };
+      case 'ratings-reviews':
+        return {
+          title: 'Ratings & Reviews',
+          subtitle: 'Monitor and moderate platform feedback',
+          component: <RatingsReviewsPage />,
         };
       case 'referrals':
         return {

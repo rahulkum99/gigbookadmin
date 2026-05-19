@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Calendar, Settings, CreditCard, Bell, Gift, Shield, FileDown, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Settings, CreditCard, FileDown, PanelLeftClose, PanelLeft, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -12,6 +12,7 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', icon: LayoutDashboard, id: 'dashboard' },
   { name: 'Users', icon: Users, id: 'users' },
   { name: 'Events', icon: Calendar, id: 'events' },
+  { name: 'Ratings & Reviews', icon: Star, id: 'ratings-reviews' },
   { name: 'Subscriptions', icon: CreditCard, id: 'subscriptions' },
   // { name: 'Referrals', icon: Gift, id: 'referrals' },
   // { name: 'Notifications', icon: Bell, id: 'notifications' },
