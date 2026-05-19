@@ -22,7 +22,6 @@ export interface UserListItem {
 
 export interface UpdateUserRequest {
   is_active?: boolean;
-  force_logout?: boolean;
   account_status?: string;
 }
 

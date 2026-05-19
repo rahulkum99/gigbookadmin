@@ -7,9 +7,6 @@ import {
   Clock,
   CreditCard,
   Shield,
-  LogOut,
-  Eye,
-  Plus,
   Ban,
   CheckCircle2,
   AlertCircle,
@@ -50,7 +47,7 @@ interface UserDetailPanelProps {
   onClose: () => void;
 }
 
-type ConfirmAction = 'suspend' | 'reactivate' | 'forceLogout' | null;
+type ConfirmAction = 'suspend' | 'reactivate' | null;
 
 export function UserDetailPanel({ user, isOpen, onClose }: UserDetailPanelProps) {
   const [selectedStatus, setSelectedStatus] = useState<User['accountStatus']>(
@@ -96,44 +93,15 @@ export function UserDetailPanel({ user, isOpen, onClose }: UserDetailPanelProps)
         }).unwrap();
         setSelectedStatus('Active');
         toast.success(result.message || 'User account reactivated.');
-      } else if (action === 'forceLogout') {
-        const result = await updateUser({
-          id: user.id,
-          body: { force_logout: true },
-        }).unwrap();
-        toast.success(result.message || 'User logged out from all devices.');
       }
     } catch {
-      const actionLabel =
-        action === 'suspend'
-          ? 'suspend user'
-          : action === 'reactivate'
-            ? 'reactivate user'
-            : 'force logout user';
+      const actionLabel = action === 'suspend' ? 'suspend user' : 'reactivate user';
       toast.error(`Failed to ${actionLabel}`, {
         description: 'Please try again or check your permissions.',
       });
     } finally {
       setConfirmAction(null);
     }
-  };
-
-  const handleViewEvents = () => {
-    toast.info('Opening user events view', {
-      description: 'This feature will be available in the Events panel',
-    });
-  };
-
-  const handleExtendSubscription = () => {
-    toast.success('Subscription extension initiated', {
-      description: 'This would add 30 days to the current subscription',
-    });
-  };
-
-  const handleCancelSubscription = () => {
-    toast.error('Subscription cancellation requested', {
-      description: 'This would require confirmation and admin approval',
-    });
   };
 
   const getStatusColor = (status: User['accountStatus']) => {
@@ -168,11 +136,6 @@ export function UserDetailPanel({ user, isOpen, onClose }: UserDetailPanelProps)
       title: 'Reactivate account?',
       description: `${user.fullName} will regain full access and be able to log in again.`,
       action: 'Reactivate account',
-    },
-    forceLogout: {
-      title: 'Force logout user?',
-      description: `${user.fullName} will be signed out from all active sessions immediately. Their account will remain active.`,
-      action: 'Force logout',
     },
   };
 
@@ -355,45 +318,6 @@ export function UserDetailPanel({ user, isOpen, onClose }: UserDetailPanelProps)
                 </div>
               </div>
             </Card>
-
-            {/* <Card className="p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Admin Actions</h3>
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start" onClick={handleViewEvents}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View User Events
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  disabled={isUpdating || isSuspended}
-                  onClick={() => setConfirmAction('forceLogout')}
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Force Logout User
-                </Button>
-                {user.plan === 'Pro' && (
-                  <Button
-                    variant="default"
-                    className="w-full justify-start"
-                    onClick={handleExtendSubscription}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Extend Subscription
-                  </Button>
-                )}
-                {user.plan === 'Pro' && (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-muted-foreground hover:text-destructive"
-                    onClick={handleCancelSubscription}
-                  >
-                    <Ban className="h-4 w-4 mr-2" />
-                    Cancel Subscription
-                  </Button>
-                )}
-              </div>
-            </Card> */}
           </div>
         </SheetContent>
       </Sheet>
