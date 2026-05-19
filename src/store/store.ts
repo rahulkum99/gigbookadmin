@@ -6,6 +6,7 @@ import { usersApi } from '@/features/users/usersApi';
 import { subscriptionsApi } from '@/features/subscriptions/subscriptionsApi';
 import { exportsApi } from '@/features/exports/exportsApi';
 import { settingsApi } from '@/features/settings/settingsApi';
+import { reviewsApi } from '@/features/reviews/reviewsApi';
 import authReducer from '@/features/auth/authSlice';
 
 export const store = configureStore({
@@ -17,6 +18,7 @@ export const store = configureStore({
     [subscriptionsApi.reducerPath]: subscriptionsApi.reducer,
     [exportsApi.reducerPath]: exportsApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [reviewsApi.reducerPath]: reviewsApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -27,7 +29,8 @@ export const store = configureStore({
       usersApi.middleware,
       subscriptionsApi.middleware,
       exportsApi.middleware,
-      settingsApi.middleware
+      settingsApi.middleware,
+      reviewsApi.middleware
     ),
 });
 

@@ -59,9 +59,10 @@ export function UsersPage() {
       const email = rawUser.email || 'N/A';
       const phone = rawUser.phone || 'N/A';
       const plan = rawUser.subscription_type?.toLowerCase() === 'pro' ? 'Pro' : 'Free';
-      const accountStatus =
-        rawUser.account_status === 'Limited' || rawUser.account_status === 'Suspended'
-          ? rawUser.account_status
+      const accountStatus = !rawUser.is_active
+        ? 'Suspended'
+        : rawUser.account_status === 'Limited'
+          ? 'Limited'
           : 'Active';
       const signupDate = rawUser.joined_at ? new Date(rawUser.joined_at) : new Date();
       const lastActive = rawUser.last_login ? new Date(rawUser.last_login) : signupDate;
@@ -87,6 +88,12 @@ export function UsersPage() {
       };
     });
   }, [data?.users]);
+
+  useEffect(() => {
+    if (!selectedUser || !isPanelOpen) return;
+    const updated = users.find((u) => u.id === selectedUser.id);
+    if (updated) setSelectedUser(updated);
+  }, [users, selectedUser?.id, isPanelOpen]);
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);

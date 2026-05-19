@@ -1,7 +1,7 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
 import { baseQueryWithReauth } from '@/features/auth/authApi';
 
-interface UserListItem {
+export interface UserListItem {
   id: string;
   email: string | null;
   username: string | null;
@@ -18,6 +18,17 @@ interface UserListItem {
   referral_code: string | null;
   last_login: string | null;
   account_status: string | null;
+}
+
+export interface UpdateUserRequest {
+  is_active?: boolean;
+  force_logout?: boolean;
+  account_status?: string;
+}
+
+export interface UpdateUserResponse {
+  message: string;
+  user: UserListItem;
 }
 
 export interface UsersResponse {
@@ -37,6 +48,7 @@ interface GetUsersParams {
 export const usersApi = createApi({
   reducerPath: 'usersApi',
   baseQuery: baseQueryWithReauth,
+  tagTypes: ['Users'],
   endpoints: (builder) => ({
     getUsers: builder.query<UsersResponse, GetUsersParams>({
       query: ({ search = '', page = 1 }) => ({
@@ -47,8 +59,17 @@ export const usersApi = createApi({
           ...(search ? { search } : {}),
         },
       }),
+      providesTags: [{ type: 'Users', id: 'LIST' }],
+    }),
+    updateUser: builder.mutation<UpdateUserResponse, { id: string; body: UpdateUserRequest }>({
+      query: ({ id, body }) => ({
+        url: `/api/v1/admin/users/${id}/`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Users', id: 'LIST' }],
     }),
   }),
 });
 
-export const { useGetUsersQuery } = usersApi;
+export const { useGetUsersQuery, useUpdateUserMutation } = usersApi;

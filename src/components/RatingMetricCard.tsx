@@ -1,13 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, TrendingDown, Star } from 'lucide-react';
 
 interface RatingMetricCardProps {
   label: string;
   value: number;
-  trend: number;
+  trend: number | null;
   trendLabel: string;
+  trendIsPercent?: boolean;
   isAverage?: boolean;
   delay?: number;
+  isLoading?: boolean;
 }
 
 export function RatingMetricCard({
@@ -15,10 +18,13 @@ export function RatingMetricCard({
   value,
   trend,
   trendLabel,
+  trendIsPercent = true,
   isAverage = false,
   delay = 0,
+  isLoading = false,
 }: RatingMetricCardProps) {
-  const isPositive = trend >= 0;
+  const showTrend = trend !== null && trend !== 0;
+  const isPositive = (trend ?? 0) >= 0;
   const formattedValue = isAverage ? value.toFixed(1) : value.toLocaleString();
 
   return (
@@ -35,20 +41,33 @@ export function RatingMetricCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          <div className="text-3xl font-semibold text-gray-900">{formattedValue}</div>
-          <div className="flex items-center gap-1.5">
-            {isPositive ? (
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-600" />
-            )}
-            <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-              {isPositive ? '+' : ''}{trend}{isAverage ? '' : '%'}
-            </span>
-            <span className="text-sm text-gray-500">{trendLabel}</span>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-9 w-24" />
+            <Skeleton className="h-4 w-32" />
           </div>
-        </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="text-3xl font-semibold text-gray-900">{formattedValue}</div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {showTrend ? (
+                <>
+                  {isPositive ? (
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                  )}
+                  <span className={`text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    {isPositive ? '+' : ''}
+                    {trend}
+                    {trendIsPercent ? '%' : ''}
+                  </span>
+                </>
+              ) : null}
+              <span className="text-sm text-gray-500">{trendLabel}</span>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
